@@ -248,14 +248,16 @@ app.whenReady().then(() => {
   if (!isDev) {
     autoUpdater.checkForUpdates()
   }
+
+  // Enable DevTools in production for debugging (F12)
+  globalShortcut.register('F12', () => {
+    const win = BrowserWindow.getFocusedWindow()
+    if (win) {
+      win.webContents.toggleDevTools({ mode: 'detach' })
+    }
+  })
   if (isDev) {
     globalShortcut.register('Control+Shift+I', () => {
-      const win = BrowserWindow.getFocusedWindow()
-      if (win) {
-        win.webContents.toggleDevTools({ mode: 'detach' })
-      }
-    })
-    globalShortcut.register('F12', () => {
       const win = BrowserWindow.getFocusedWindow()
       if (win) {
         win.webContents.toggleDevTools({ mode: 'detach' })
