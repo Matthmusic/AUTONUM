@@ -9,25 +9,6 @@ type FileItem = {
   newName: string
 }
 
-// Déclaration TypeScript pour window.api
-declare global {
-  interface Window {
-    api: {
-      pickFiles: () => Promise<string[] | null>
-      pickOutputFolder: () => Promise<string | null>
-      renameFiles: (files: string[], outputFolder: string, prefix: string, startNumber: number) => Promise<{ success: number; errors: string[] }>
-      windowClose: () => Promise<void>
-      windowMinimize: () => Promise<void>
-      windowToggleMaximize: () => Promise<void>
-      checkUpdates: () => Promise<{ status: string; version?: string; message?: string }>
-      downloadUpdate: () => Promise<void>
-      installUpdate: () => Promise<void>
-      onUpdateEvent: (callback: (data: any) => void) => () => void
-      getFilePathFromFile: (file: File) => string | null
-    }
-  }
-}
-
 const hasApi = () => typeof window !== 'undefined' && typeof (window as any).api !== 'undefined'
 
 function App() {
