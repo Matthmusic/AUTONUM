@@ -21,13 +21,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: 'npm'
 
       - name: Setup Python for build
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Download Python Embedded
+      - name: Cache Python Embedded
+        id: cache-python
+        uses: actions/cache@v4
+        with:
+          path: python_runtime
+          key: python-embedded-3.11.9-optimized-${{ runner.os }}
+
+      - name: Download and Setup Python Embedded
+        if: steps.cache-python.outputs.cache-hit != 'true'
         shell: pwsh
         run: |
           Write-Host "Downloading Python 3.11 embedded..."
@@ -44,7 +53,7 @@ jobs:
           Invoke-WebRequest -Uri $getPipUrl -OutFile "python_runtime/get-pip.py"
 
           Write-Host "Installing pip..."
-          & "python_runtime/python.exe" "python_runtime/get-pip.py"
+          & "python_runtime/python.exe" "python_runtime/get-pip.py" --no-warn-script-location
 
           Write-Host "Enabling site-packages..."
           $pthFile = Get-ChildItem -Path "python_runtime" -Filter "python311._pth" | Select-Object -First 1
@@ -54,10 +63,26 @@ jobs:
             $content | Set-Content $pthFile.FullName
           }
 
+          Write-Host "Cleaning up unnecessary files..."
+          # Supprimer les fichiers de test et documentation inutiles
+          Remove-Item -Path "python_runtime/get-pip.py" -ErrorAction SilentlyContinue
+          Remove-Item -Path "python_runtime/Lib/site-packages/pip/_vendor/distlib/*.exe" -Exclude "t64.exe" -ErrorAction SilentlyContinue
+          Remove-Item -Path "python_runtime/Lib/site-packages/setuptools/*.exe" -Exclude "cli-64.exe" -ErrorAction SilentlyContinue
+
           Write-Host "Python embedded setup complete!"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Cache Electron Builder
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~\AppData\Local\electron\Cache
+            ~\AppData\Local\electron-builder\Cache
+          key: ${{ runner.os }}-electron-builder-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-electron-builder-
 
       - name: Build and Publish Electron app
         run: npm run build:electron -- --publish always
