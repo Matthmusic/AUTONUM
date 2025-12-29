@@ -66,6 +66,13 @@ function createWindow() {
       event.preventDefault()
     }
   })
+
+  // Enable DevTools with F12 (after window is created)
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.key === 'F12' && input.type === 'keyDown') {
+      mainWindow.webContents.toggleDevTools()
+    }
+  })
 }
 
 function initAutoUpdater() {
@@ -216,7 +223,10 @@ ipcMain.handle('install-update', async () => {
   const updater = initAutoUpdater()
   if (!updater) return
 
-  updater.quitAndInstall()
+  // setImmediate ensures the IPC response is sent before quitting
+  setImmediate(() => {
+    updater.quitAndInstall(false, true)
+  })
 })
 
 ipcMain.handle('window-close', () => {
@@ -249,13 +259,6 @@ app.whenReady().then(() => {
     autoUpdater.checkForUpdates()
   }
 
-  // Enable DevTools in production for debugging (F12)
-  globalShortcut.register('F12', () => {
-    const win = BrowserWindow.getFocusedWindow()
-    if (win) {
-      win.webContents.toggleDevTools({ mode: 'detach' })
-    }
-  })
   if (isDev) {
     globalShortcut.register('Control+Shift+I', () => {
       const win = BrowserWindow.getFocusedWindow()
