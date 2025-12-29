@@ -22,10 +22,39 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Setup Python
+      - name: Setup Python for build
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: Download Python Embedded
+        shell: pwsh
+        run: |
+          Write-Host "Downloading Python 3.11 embedded..."
+          $pythonUrl = "https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-amd64.zip"
+          $pythonZip = "python-embed.zip"
+          Invoke-WebRequest -Uri $pythonUrl -OutFile $pythonZip
+
+          Write-Host "Extracting Python..."
+          New-Item -ItemType Directory -Force -Path "python_runtime"
+          Expand-Archive -Path $pythonZip -DestinationPath "python_runtime" -Force
+
+          Write-Host "Downloading get-pip.py..."
+          $getPipUrl = "https://bootstrap.pypa.io/get-pip.py"
+          Invoke-WebRequest -Uri $getPipUrl -OutFile "python_runtime/get-pip.py"
+
+          Write-Host "Installing pip..."
+          & "python_runtime/python.exe" "python_runtime/get-pip.py"
+
+          Write-Host "Enabling site-packages..."
+          $pthFile = Get-ChildItem -Path "python_runtime" -Filter "python311._pth" | Select-Object -First 1
+          if ($pthFile) {
+            $content = Get-Content $pthFile.FullName
+            $content = $content -replace '#import site', 'import site'
+            $content | Set-Content $pthFile.FullName
+          }
+
+          Write-Host "Python embedded setup complete!"
 
       - name: Install dependencies
         run: npm ci

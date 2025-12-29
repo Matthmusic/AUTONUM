@@ -16,8 +16,8 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "TontonKad",
-        "repo": "autonum"
+        "owner": "Matthmusic",
+        "repo": "AUTONUM"
       }
     ],
     "files": [
