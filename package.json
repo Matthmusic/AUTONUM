@@ -3,7 +3,7 @@
   "description": "AutoNUM - Renommage automatique de fichiers (Electron + React + Python).",
   "author": "TontonKad",
   "private": true,
-  "version": "0.0.6",
+  "version": "0.0.7",
   "type": "commonjs",
   "main": "electron/main.cjs",
   "build": {
@@ -25,12 +25,12 @@
       "dist/**/*",
       "electron/**/*",
       "package.json",
-      "../python_backend/**/*",
+      "python_backend/**/*",
       "python_runtime/**/*"
     ],
     "extraResources": [
       {
-        "from": "../python_backend",
+        "from": "python_backend",
         "to": "python_backend"
       },
       {

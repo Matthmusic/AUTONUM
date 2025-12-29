@@ -11,7 +11,7 @@ let mainWindow = null
 
 // Python paths setup
 const PY_SCRIPT = isDev
-  ? path.resolve(__dirname, '../../python_backend/renamer.py')
+  ? path.resolve(__dirname, '../python_backend/renamer.py')
   : path.join(process.resourcesPath, 'python_backend', 'renamer.py')
 const PY_EMBED = isDev
   ? path.resolve(__dirname, '../python_runtime/python.exe')

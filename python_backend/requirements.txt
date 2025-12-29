@@ -1,0 +1,2 @@
+# AutoNUM Python Backend - Requirements
+# Aucune dépendance externe requise (utilise uniquement stdlib)

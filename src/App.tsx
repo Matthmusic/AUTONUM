@@ -12,7 +12,7 @@ type FileItem = {
 const hasApi = () => typeof window !== 'undefined' && typeof (window as any).api !== 'undefined'
 
 function App() {
-  const currentVersion = '0.0.6'
+  const currentVersion = '0.0.7'
   const [files, setFiles] = useState<FileItem[]>([])
   const [outputFolder, setOutputFolder] = useState('')
   const [prefix, setPrefix] = useState('Relevé')
