@@ -126,6 +126,14 @@ ipcMain.handle('pick-output-folder', async () => {
 
 ipcMain.handle('rename-files', async (_event, files, outputFolder, prefix, startNumber, moveMode = false) => {
   return new Promise((resolve, reject) => {
+    // Debug logs
+    console.log('=== RENAME DEBUG ===')
+    console.log('isDev:', isDev)
+    console.log('PY_CMD:', PY_CMD)
+    console.log('PY_SCRIPT:', PY_SCRIPT)
+    console.log('moveMode:', moveMode)
+    console.log('process.resourcesPath:', process.resourcesPath)
+
     const args = [
       PY_SCRIPT,
       '--files', JSON.stringify(files),
@@ -136,18 +144,32 @@ ipcMain.handle('rename-files', async (_event, files, outputFolder, prefix, start
     if (moveMode) {
       args.push('--move')
     }
+
+    console.log('Command:', PY_CMD, args.join(' '))
+    console.log('==================')
+
     const child = spawn(PY_CMD, args)
     let stdout = ''
     let stderr = ''
+
+    child.on('error', (err) => {
+      console.error('Spawn error:', err)
+      reject(new Error(`Failed to start Python: ${err.message}`))
+    })
 
     child.stdout.on('data', (data) => {
       stdout += data.toString()
     })
     child.stderr.on('data', (data) => {
       stderr += data.toString()
+      console.error('Python stderr:', data.toString())
     })
 
     child.on('close', (code) => {
+      console.log('Python exit code:', code)
+      console.log('Python stdout:', stdout)
+      console.log('Python stderr:', stderr)
+
       if (code !== 0) {
         reject(new Error(stderr || `Python exited with code ${code}`))
         return
@@ -156,7 +178,7 @@ ipcMain.handle('rename-files', async (_event, files, outputFolder, prefix, start
         const parsed = JSON.parse(stdout)
         resolve(parsed)
       } catch (err) {
-        reject(new Error(`Réponse JSON invalide: ${err}`))
+        reject(new Error(`Réponse JSON invalide: ${err}\nStdout: ${stdout}`))
       }
     })
   })
