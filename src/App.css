@@ -335,15 +335,123 @@
 /* Config Section */
 .config-inputs {
   display: grid;
-  grid-template-columns: 1fr 200px;
+  grid-template-columns: 1fr 200px 1fr;
   gap: 16px;
   margin-bottom: 16px;
+}
+
+@media (max-width: 900px) {
+  .config-inputs {
+    grid-template-columns: 1fr;
+  }
 }
 
 .input-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.toggle-group {
+  display: flex;
+  gap: 0;
+  padding: 3px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid #1f2937;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  white-space: nowrap;
+}
+
+.toggle-btn:hover:not(:disabled):not(.active) {
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.toggle-btn.active {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow:
+    0 1px 3px rgba(16, 185, 129, 0.4),
+    0 4px 12px rgba(16, 185, 129, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transform: translateY(-0.5px);
+}
+
+.toggle-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Tooltip pour les boutons toggle */
+.toggle-btn {
+  position: relative;
+}
+
+.toggle-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  padding: 6px 10px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid #1f2937;
+  border-radius: 6px;
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.toggle-btn::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  border: 5px solid transparent;
+  border-top-color: #1f2937;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 100;
+}
+
+.toggle-btn:hover::after,
+.toggle-btn:hover::before {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.toggle-btn.active:hover::after {
+  background: rgba(16, 185, 129, 0.95);
+  border-color: #10b981;
+  color: #fff;
+}
+
+.toggle-btn.active:hover::before {
+  border-top-color: #10b981;
 }
 
 .btn-rename {

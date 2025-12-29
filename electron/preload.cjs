@@ -4,8 +4,8 @@ const { ipcRenderer, webUtils } = require('electron')
 window.api = {
   pickFiles: () => ipcRenderer.invoke('pick-files'),
   pickOutputFolder: () => ipcRenderer.invoke('pick-output-folder'),
-  renameFiles: (files, outputFolder, prefix, startNumber) =>
-    ipcRenderer.invoke('rename-files', files, outputFolder, prefix, startNumber),
+  renameFiles: (files, outputFolder, prefix, startNumber, moveMode) =>
+    ipcRenderer.invoke('rename-files', files, outputFolder, prefix, startNumber, moveMode),
   windowClose: () => ipcRenderer.invoke('window-close'),
   windowMinimize: () => ipcRenderer.invoke('window-minimize'),
   windowToggleMaximize: () => ipcRenderer.invoke('window-toggle-maximize'),

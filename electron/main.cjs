@@ -6,16 +6,17 @@ const { spawn } = require('cross-spawn')
 // Import autoUpdater only after app is ready
 let autoUpdater = null
 
-const APP_ROOT = app.isPackaged ? process.resourcesPath : path.resolve(__dirname, '..', '..')
-const PY_SCRIPT = app.isPackaged
-  ? path.join(process.resourcesPath, 'python_backend', 'renamer.py')
-  : path.resolve(__dirname, '../../python_backend/renamer.py')
-const PY_EMBED = app.isPackaged
-  ? path.join(process.resourcesPath, 'python_runtime', 'python.exe')
-  : path.resolve(__dirname, '../python_runtime/python.exe')
-const PY_CMD = process.env.PYTHON || (app.isPackaged ? PY_EMBED : 'python')
-let mainWindow = null
 const isDev = !!process.env.VITE_DEV_SERVER_URL
+let mainWindow = null
+
+// Python paths setup
+const PY_SCRIPT = isDev
+  ? path.resolve(__dirname, '../../python_backend/renamer.py')
+  : path.join(process.resourcesPath, 'python_backend', 'renamer.py')
+const PY_EMBED = isDev
+  ? path.resolve(__dirname, '../python_runtime/python.exe')
+  : path.join(process.resourcesPath, 'python_runtime', 'python.exe')
+const PY_CMD = process.env.PYTHON || (isDev ? 'python' : PY_EMBED)
 
 function createWindow() {
   const { width: displayW, height: displayH } = screen.getPrimaryDisplay().workAreaSize
@@ -67,16 +68,14 @@ function createWindow() {
   })
 }
 
-function wireAutoUpdater() {
-  if (isDev) return
+function initAutoUpdater() {
+  if (isDev || autoUpdater) return autoUpdater
 
   // Lazy load autoUpdater
-  if (!autoUpdater) {
-    autoUpdater = require('electron-updater').autoUpdater
-  }
-
+  autoUpdater = require('electron-updater').autoUpdater
   autoUpdater.autoDownload = false
 
+  // Setup event listeners once
   autoUpdater.on('update-available', (info) => {
     if (mainWindow) mainWindow.webContents.send('update-event', { type: 'available', info })
   })
@@ -92,6 +91,13 @@ function wireAutoUpdater() {
   autoUpdater.on('update-downloaded', (info) => {
     if (mainWindow) mainWindow.webContents.send('update-event', { type: 'downloaded', info })
   })
+
+  return autoUpdater
+}
+
+function wireAutoUpdater() {
+  if (isDev) return
+  initAutoUpdater()
 }
 
 // IPC Handlers
@@ -118,15 +124,19 @@ ipcMain.handle('pick-output-folder', async () => {
   return res.filePaths[0]
 })
 
-ipcMain.handle('rename-files', async (_event, files, outputFolder, prefix, startNumber) => {
+ipcMain.handle('rename-files', async (_event, files, outputFolder, prefix, startNumber, moveMode = false) => {
   return new Promise((resolve, reject) => {
-    const child = spawn(PY_CMD, [
+    const args = [
       PY_SCRIPT,
       '--files', JSON.stringify(files),
       '--output', outputFolder,
       '--prefix', prefix,
       '--start', String(startNumber)
-    ])
+    ]
+    if (moveMode) {
+      args.push('--move')
+    }
+    const child = spawn(PY_CMD, args)
     let stdout = ''
     let stderr = ''
 
@@ -155,13 +165,11 @@ ipcMain.handle('rename-files', async (_event, files, outputFolder, prefix, start
 ipcMain.handle('check-updates', async () => {
   if (isDev) return { status: 'dev' }
 
-  // Lazy load autoUpdater
-  if (!autoUpdater) {
-    autoUpdater = require('electron-updater').autoUpdater
-  }
+  const updater = initAutoUpdater()
+  if (!updater) return { status: 'error', message: 'AutoUpdater not available' }
 
   try {
-    const result = await autoUpdater.checkForUpdates()
+    const result = await updater.checkForUpdates()
     if (result && result.updateInfo && result.updateInfo.version !== app.getVersion()) {
       return { status: 'available', version: result.updateInfo.version }
     }
@@ -174,23 +182,19 @@ ipcMain.handle('check-updates', async () => {
 ipcMain.handle('download-update', async () => {
   if (isDev) return
 
-  // Lazy load autoUpdater
-  if (!autoUpdater) {
-    autoUpdater = require('electron-updater').autoUpdater
-  }
+  const updater = initAutoUpdater()
+  if (!updater) return
 
-  await autoUpdater.downloadUpdate()
+  await updater.downloadUpdate()
 })
 
 ipcMain.handle('install-update', async () => {
   if (isDev) return
 
-  // Lazy load autoUpdater
-  if (!autoUpdater) {
-    autoUpdater = require('electron-updater').autoUpdater
-  }
+  const updater = initAutoUpdater()
+  if (!updater) return
 
-  autoUpdater.quitAndInstall()
+  updater.quitAndInstall()
 })
 
 ipcMain.handle('window-close', () => {

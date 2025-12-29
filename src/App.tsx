@@ -12,11 +12,12 @@ type FileItem = {
 const hasApi = () => typeof window !== 'undefined' && typeof (window as any).api !== 'undefined'
 
 function App() {
-  const currentVersion = '0.0.2'
+  const currentVersion = '0.0.3'
   const [files, setFiles] = useState<FileItem[]>([])
   const [outputFolder, setOutputFolder] = useState('')
   const [prefix, setPrefix] = useState('Relevé')
   const [startNumber, setStartNumber] = useState(1)
+  const [moveMode, setMoveMode] = useState(false)
   const [status, setStatus] = useState('Prêt - Glissez vos fichiers pour commencer')
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState<{ message: string; type: 'info' | 'error' | 'success' } | null>(null)
@@ -229,7 +230,7 @@ function App() {
 
     try {
       const filePaths = files.map(f => f.path)
-      const result = await window.api.renameFiles(filePaths, outputFolder, prefix, startNumber)
+      const result = await window.api.renameFiles(filePaths, outputFolder, prefix, startNumber, moveMode)
 
       if (result.errors && result.errors.length > 0) {
         showToast(`${result.success} réussite(s), ${result.errors.length} erreur(s)`, 'error')
@@ -384,6 +385,27 @@ function App() {
                   onChange={(e) => setStartNumber(parseInt(e.target.value) || 1)}
                   min="1"
                 />
+              </div>
+              <div className="input-group">
+                <label className="label">Mode d'opération</label>
+                <div className="toggle-group">
+                  <button
+                    className={`toggle-btn ${!moveMode ? 'active' : ''}`}
+                    onClick={() => setMoveMode(false)}
+                    disabled={loading}
+                    data-tooltip="Les fichiers d'origine sont conservés"
+                  >
+                    Copier
+                  </button>
+                  <button
+                    className={`toggle-btn ${moveMode ? 'active' : ''}`}
+                    onClick={() => setMoveMode(true)}
+                    disabled={loading}
+                    data-tooltip="Les fichiers d'origine sont supprimés"
+                  >
+                    Déplacer
+                  </button>
+                </div>
               </div>
             </div>
 

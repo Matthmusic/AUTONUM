@@ -10,7 +10,8 @@ declare global {
         files: string[],
         outputFolder: string,
         prefix: string,
-        startNumber: number
+        startNumber: number,
+        moveMode?: boolean
       ) => Promise<{ success: number; errors: string[] }>
       windowClose: () => void
       windowMinimize: () => void
