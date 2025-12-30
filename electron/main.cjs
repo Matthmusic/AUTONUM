@@ -1,13 +1,16 @@
 const electron = require('electron')
 const { app, BrowserWindow, ipcMain, dialog, shell, screen, Menu, globalShortcut } = electron
+const { autoUpdater } = require('electron-updater')
 const path = require('path')
 const { spawn } = require('cross-spawn')
 
-// Import autoUpdater only after app is ready
-let autoUpdater = null
+// Configure autoUpdater
+autoUpdater.autoDownload = false
+autoUpdater.autoInstallOnAppQuit = true
 
 const isDev = !!process.env.VITE_DEV_SERVER_URL
 let mainWindow = null
+let updateAvailable = false
 
 // Python paths setup
 const PY_SCRIPT = isDev
@@ -75,39 +78,54 @@ function createWindow() {
   })
 }
 
-function initAutoUpdater() {
-  if (isDev || autoUpdater) return autoUpdater
+// ==============================
+// GESTION DES MISES À JOUR
+// ==============================
 
-  // Lazy load autoUpdater
-  autoUpdater = require('electron-updater').autoUpdater
-  autoUpdater.autoDownload = false
+// Mise à jour disponible
+autoUpdater.on('update-available', (info) => {
+  updateAvailable = true
+  console.log('Mise à jour disponible:', info.version)
 
-  // Setup event listeners once
-  autoUpdater.on('update-available', (info) => {
-    if (mainWindow) mainWindow.webContents.send('update-event', { type: 'available', info })
-  })
-  autoUpdater.on('update-not-available', () => {
-    if (mainWindow) mainWindow.webContents.send('update-event', { type: 'not-available' })
-  })
-  autoUpdater.on('error', (error) => {
-    if (mainWindow) mainWindow.webContents.send('update-event', { type: 'error', message: error.message })
-  })
-  autoUpdater.on('download-progress', (progress) => {
-    if (mainWindow) mainWindow.webContents.send('update-event', { type: 'progress', progress })
-  })
-  autoUpdater.on('update-downloaded', (info) => {
-    if (mainWindow) mainWindow.webContents.send('update-event', { type: 'downloaded', info })
-  })
+  if (mainWindow) {
+    mainWindow.webContents.send('update-event', { type: 'available', info })
+  }
+})
 
-  return autoUpdater
-}
+// Pas de mise à jour
+autoUpdater.on('update-not-available', () => {
+  console.log('Application à jour')
+  if (mainWindow) {
+    mainWindow.webContents.send('update-event', { type: 'not-available' })
+  }
+})
 
-function wireAutoUpdater() {
-  if (isDev) return
-  initAutoUpdater()
-}
+// Erreur de vérification
+autoUpdater.on('error', (err) => {
+  console.error('Erreur de mise à jour:', err)
+  if (mainWindow) {
+    mainWindow.webContents.send('update-event', { type: 'error', message: err.message })
+  }
+})
 
-// IPC Handlers
+// Progression du téléchargement
+autoUpdater.on('download-progress', (progressObj) => {
+  if (mainWindow) {
+    mainWindow.webContents.send('update-event', { type: 'progress', progress: progressObj })
+  }
+})
+
+// Mise à jour téléchargée
+autoUpdater.on('update-downloaded', (info) => {
+  console.log('Mise à jour téléchargée')
+  if (mainWindow) {
+    mainWindow.webContents.send('update-event', { type: 'downloaded', info })
+  }
+})
+
+// ==============================
+// IPC HANDLERS
+// ==============================
 
 ipcMain.handle('pick-files', async () => {
   const res = await dialog.showOpenDialog(mainWindow, {
@@ -191,42 +209,23 @@ ipcMain.handle('rename-files', async (_event, files, outputFolder, prefix, start
   })
 })
 
-ipcMain.handle('check-updates', async () => {
-  if (isDev) return { status: 'dev' }
-
-  const updater = initAutoUpdater()
-  if (!updater) return { status: 'error', message: 'AutoUpdater not available' }
-
-  try {
-    const result = await updater.checkForUpdates()
-    if (result && result.updateInfo && result.updateInfo.version !== app.getVersion()) {
-      return { status: 'available', version: result.updateInfo.version }
-    }
-    return { status: 'up-to-date', version: app.getVersion() }
-  } catch (err) {
-    return { status: 'error', message: String(err) }
+// V rifier manuellement les mises à jour
+ipcMain.on('check-for-updates', () => {
+  if (!isDev) {
+    autoUpdater.checkForUpdates()
   }
 })
 
-ipcMain.handle('download-update', async () => {
-  if (isDev) return
-
-  const updater = initAutoUpdater()
-  if (!updater) return
-
-  await updater.downloadUpdate()
+// L'utilisateur veut télécharger la mise à jour
+ipcMain.on('download-update', () => {
+  if (updateAvailable) {
+    autoUpdater.downloadUpdate()
+  }
 })
 
-ipcMain.handle('install-update', async () => {
-  if (isDev) return
-
-  const updater = initAutoUpdater()
-  if (!updater) return
-
-  // setImmediate ensures the IPC response is sent before quitting
-  setImmediate(() => {
-    updater.quitAndInstall(false, true)
-  })
+// L'utilisateur veut installer la mise à jour maintenant
+ipcMain.on('install-update', () => {
+  autoUpdater.quitAndInstall(false, true)
 })
 
 ipcMain.handle('window-close', () => {
@@ -254,9 +253,12 @@ ipcMain.handle('window-toggle-maximize', () => {
 app.whenReady().then(() => {
   Menu.setApplicationMenu(null)
   createWindow()
-  wireAutoUpdater()
+
+  // Vérifier les mises à jour au démarrage (seulement en prod)
   if (!isDev) {
-    autoUpdater.checkForUpdates()
+    setTimeout(() => {
+      autoUpdater.checkForUpdates()
+    }, 3000)
   }
 
   if (isDev) {
@@ -267,6 +269,7 @@ app.whenReady().then(() => {
       }
     })
   }
+
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow()

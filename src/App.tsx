@@ -12,7 +12,7 @@ type FileItem = {
 const hasApi = () => typeof window !== 'undefined' && typeof (window as any).api !== 'undefined'
 
 function App() {
-  const currentVersion = '0.0.7'
+  const currentVersion = '0.0.8'
   const [files, setFiles] = useState<FileItem[]>([])
   const [outputFolder, setOutputFolder] = useState('')
   const [prefix, setPrefix] = useState('Relevé')
@@ -230,19 +230,26 @@ function App() {
 
     try {
       const filePaths = files.map(f => f.path)
+      console.log('🔄 Renaming files with:', { filePaths, outputFolder, prefix, startNumber, moveMode })
       const result = await window.api.renameFiles(filePaths, outputFolder, prefix, startNumber, moveMode)
+      console.log('✅ Rename result:', result)
 
       if (result.errors && result.errors.length > 0) {
+        console.error('❌ Errors during rename:', result.errors)
+        // Log each error individually
+        result.errors.forEach((error, idx) => {
+          console.error(`  Error ${idx + 1}:`, error)
+        })
         showToast(`${result.success} réussite(s), ${result.errors.length} erreur(s)`, 'error')
-        setStatus(`Terminé avec ${result.errors.length} erreur(s)`)
+        setStatus(`Terminé avec ${result.errors.length} erreur(s): ${result.errors[0]}`)
       } else {
         showToast(`${result.success} fichier(s) renommé(s) avec succès!`, 'success')
         setStatus(`✓ ${result.success} fichier(s) renommé(s)`)
       }
     } catch (err) {
-      console.error(err)
-      showToast('Erreur lors du renommage.', 'error')
-      setStatus('Erreur lors du renommage')
+      console.error('💥 Exception during rename:', err)
+      showToast(`Erreur: ${err.message || err}`, 'error')
+      setStatus(`Erreur: ${err.message || err}`)
     } finally {
       setLoading(false)
     }
@@ -265,15 +272,15 @@ function App() {
     updatePreviews()
   }, [prefix, startNumber])
 
-  const downloadUpdate = async () => {
+  const downloadUpdate = () => {
     if (!hasApi()) return
-    await window.api.downloadUpdate()
+    window.api.downloadUpdate()
     setUpdateStatus((prev) => ({ ...prev, state: 'downloading' }))
   }
 
-  const installUpdate = async () => {
+  const installUpdate = () => {
     if (!hasApi()) return
-    await window.api.installUpdate()
+    window.api.installUpdate()
   }
 
   return (

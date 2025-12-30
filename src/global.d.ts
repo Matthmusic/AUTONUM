@@ -16,9 +16,9 @@ declare global {
       windowClose: () => void
       windowMinimize: () => void
       windowToggleMaximize: () => void
-      checkUpdates: () => Promise<{ status: string; version?: string; message?: string }>
-      downloadUpdate: () => Promise<void>
-      installUpdate: () => Promise<void>
+      checkUpdates: () => void
+      downloadUpdate: () => void
+      installUpdate: () => void
       onUpdateEvent: (callback: (data: any) => void) => () => void
       getFilePathFromFile: (file: File) => string | null
     }
