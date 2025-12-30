@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "version": "1.0.0",
+  "app": {
+    "id": "autonum",
+    "name": "AutoNUM",
+    "version": "0.0.11",
+    "description": {
+      "short": "Renommage automatique de fichiers avec interface moderne et apercu instantane.",
+      "long": "AutoNUM permet de renommer des lots de fichiers avec prefixe personnalise, numerotation automatique, modes copier/deplacer et verification avant execution. L'application combine Electron, React et un backend Python pour une interface rapide avec drag-and-drop et mises a jour automatiques."
+    }
+  },
+  "resources": {
+    "logo": {
+      "path": "public/autonum.svg",
+      "url": "https://raw.githubusercontent.com/Matthmusic/AUTONUM/main/public/autonum.svg"
+    },
+    "icon": {
+      "path": "public/autonum.ico",
+      "url": "https://raw.githubusercontent.com/Matthmusic/AUTONUM/main/public/autonum.ico"
+    }
+  },
+  "detection": {
+    "windows": {
+      "files": [
+        {
+          "path": "%LOCALAPPDATA%\\Programs\\AutoNUM\\AutoNUM.exe",
+          "description": "Installation standard NSIS (per-user)"
+        }
+      ],
+      "directories": [
+        {
+          "path": "%APPDATA%\\AutoNUM",
+          "description": "Dossier de donnees utilisateur"
+        }
+      ]
+    },
+    "priority": "files"
+  },
+  "metadata": {
+    "author": {
+      "name": "TontonKad",
+      "url": "https://github.com/Matthmusic"
+    },
+    "category": "Productivite",
+    "tags": [
+      "renommage",
+      "fichiers",
+      "photos",
+      "productivite",
+      "drag-drop"
+    ],
+    "repository": {
+      "type": "github",
+      "url": "https://github.com/Matthmusic/AUTONUM",
+      "branch": "main"
+    },
+    "license": "MIT",
+    "compatibility": {
+      "os": ["windows"],
+      "minVersion": "Windows 10"
+    }
+  },
+  "installation": {
+    "type": "installer",
+    "downloadUrl": "https://github.com/Matthmusic/AUTONUM/releases/latest/download/AutoNUM-0.0.11-Setup.exe"
+  },
+  "changelog": {
+    "0.0.11": {
+      "date": "2025-12-30",
+      "changes": [
+        "Mise a jour des metadonnees CEA App Store",
+        "Bump version 0.0.11",
+        "Ajustements docs et release"
+      ]
+    },
+    "0.0.10": {
+      "date": "2025-12-30",
+      "changes": [
+        "Systeme de mise a jour completement fonctionnel",
+        "Bouton \"Installer\" apparait correctement",
+        "Relance automatique apres installation",
+        "Base sur l'architecture ListX eprouvee"
+      ]
+    }
+  }
+}

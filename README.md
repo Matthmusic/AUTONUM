@@ -2,7 +2,7 @@
 
 Application de renommage automatique de fichiers avec interface moderne Electron + React + Python.
 
-![Version](https://img.shields.io/badge/version-0.0.10-green.svg)
+![Version](https://img.shields.io/badge/version-0.0.11-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 ## ✨ Fonctionnalités
@@ -41,7 +41,7 @@ Application de renommage automatique de fichiers avec interface moderne Electron
 Téléchargez la dernière version depuis [GitHub Releases](https://github.com/Matthmusic/AUTONUM/releases) :
 
 ```
-AutoNUM-0.0.10-Setup.exe
+AutoNUM-0.0.11-Setup.exe
 ```
 
 L'installeur inclut tout ce dont vous avez besoin, y compris Python embarqué.
@@ -77,15 +77,15 @@ Cette commande lance :
 npm run build:electron
 ```
 
-Génère l'installeur dans `dist/AutoNUM-0.0.10-Setup.exe`
+Génère l'installeur dans `dist/AutoNUM-0.0.11-Setup.exe`
 
 ### Build automatique (GitHub Actions)
 
 Le workflow `.github/workflows/release.yml` s'exécute automatiquement lors d'un push de tag :
 
 ```bash
-git tag v0.0.10
-git push origin v0.0.10
+git tag v0.0.11
+git push origin v0.0.11
 ```
 
 Le workflow :
@@ -214,7 +214,11 @@ mainWindow.webContents.on('before-input-event', (event, input) => {
 
 ## 📝 Changelog
 
-### v0.0.10 (Actuelle)
+### v0.0.11 (Actuelle)
+- Mise a jour des metadonnees CEA App Store
+- Bump version 0.0.11
+
+### v0.0.10
 - ✅ Système de mise à jour complètement fonctionnel
 - ✅ Bouton "Installer" apparaît correctement
 - ✅ Relance automatique après installation
