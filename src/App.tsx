@@ -12,7 +12,7 @@ type FileItem = {
 const hasApi = () => typeof window !== 'undefined' && typeof (window as any).api !== 'undefined'
 
 function App() {
-  const currentVersion = '0.0.8'
+  const currentVersion = '0.0.9'
   const [files, setFiles] = useState<FileItem[]>([])
   const [outputFolder, setOutputFolder] = useState('')
   const [prefix, setPrefix] = useState('Relevé')
@@ -248,8 +248,9 @@ function App() {
       }
     } catch (err) {
       console.error('💥 Exception during rename:', err)
-      showToast(`Erreur: ${err.message || err}`, 'error')
-      setStatus(`Erreur: ${err.message || err}`)
+      const errorMessage = err instanceof Error ? err.message : String(err)
+      showToast(`Erreur: ${errorMessage}`, 'error')
+      setStatus(`Erreur: ${errorMessage}`)
     } finally {
       setLoading(false)
     }
